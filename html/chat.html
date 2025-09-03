@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="/chat.css">
+  <title>async</title>
+  <link rel="icon" href="/img/logo.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    label {
+      color: black;
+    }
+    @media (max-width: 600px) {
+      .modal-content {
+        width: 90%;
+        max-width: 350px;
+      }
+    }
+    @media (max-width: 768px) {
+      .chat-wrapper {
+        position: relative;
+        overflow: hidden;
+      }
+      .chat-sidebar,
+      .chat-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.3s ease;
+      }
+      .mobile-view-chats .chat-sidebar {
+        transform: translateX(0);
+      }
+      .mobile-view-chats .chat-panel {
+        transform: translateX(100%);
+      }
+      .mobile-view-chat .chat-sidebar {
+        transform: translateX(-100%);
+      }
+      .mobile-view-chat .chat-panel {
+        transform: translateX(0);
+      }
+      #back-to-chats {
+        display: inline-block;
+        margin-right: 0.5em;
+        font-size: 1.4em;
+        cursor: pointer;
+      }
+    }
+    #back-to-chats {
+      display: none;
+    }
+    .custom-file-button {
+      background: linear-gradient(
+        90deg,
+        var(--monokai-highlight),
+        var(--monokai-accent),
+        var(--monokai-blue)
+      );
+      display: inline-block;
+      background-color: var();
+      color: #000;
+      font-weight: bold;
+      padding: 0.6em 1em;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s ease;
+      text-align: center;
+    }
+    #upload-file-input {
+      display: none;
+    }
+    button,
+    .custom-file-button {
+      background: #eee;
+      color: #000;
+      font-weight: bold;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.12s, box-shadow 0.12s, transform 0.08s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    button:hover,
+    .custom-file-button:hover {
+      /* Remove color/background change, keep animation */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+      transform: translateY(1px) scale(0.98);
+    }
+    button:active,
+    .custom-file-button:active {
+      /* Remove color/background change, keep animation */
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      transform: translateY(2px) scale(0.97);
+    }
+    .delete-msg-btn {
+      display: none;
+      float: right;
+      background: none;
+      border: none;
+      color: #111 !important;
+      font-size: 1.1em;
+      cursor: pointer;
+      padding: 0 0.3em;
+      transition: background 0.12s, box-shadow 0.12s, transform 0.08s;
+    }
+    .bubble:hover .delete-msg-btn {
+      display: inline;
+    }
+    .delete-msg-btn:hover,
+    .delete-msg-btn:focus {
+      color: #111 !important;
+      /* Remove background and color change, keep animation */
+      border-radius: 3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+      transform: translateY(1px) scale(0.98);
+      background: none !important;
+    }
+    .delete-msg-btn:active {
+      background: none !important;
+      transform: translateY(2px) scale(0.97);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+      <h2>async - <span id="username"></span></h2>
+      <ul id="chat-tabs"></ul>
+      <div class="chat-controls">
+        <button id="add-chat-btn"><i class="fas fa-plus"></i> Add Chat</button>
+        <button onclick="removeRoom()"><i class="fas fa-trash"></i> Remove Chat</button>
+      </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <div id="chat-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+          <span id="back-to-chats" style="display:none;"><i class="fas fa-arrow-left"></i></span>
+          <h2 id="room-title" style="margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            Select a chat
+          </h2>
+        </div>
+        <div id="room-users" style="display: none;">
+          <button id="manage-users-btn" title="Manage Users" onclick="openManageUsersModal()"><i class="fas fa-cog"></i></button>
+        </div>
+      </div>
+
+      <div id="messages" class="chat-messages"></div>
+      <div class="chat-input" id="chat-input-bar">
+        <input id="message" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+        <button onclick="openUploadModal()" style="margin-left: 6px;"><i class="fas fa-save"></i></button>
+      </div>
+    </div>
+  </div>
+<script>
+  // Open Upload Modal
+  function openUploadModal() {
+    const uploadModal = document.getElementById('upload-modal');
+    if (uploadModal) {
+      uploadModal.hidden = false;
+    }
+  }
+
+  // Close Upload Modal
+  const closeUploadModal = document.getElementById('close-upload-modal');
+  if (closeUploadModal) {
+    closeUploadModal.addEventListener('click', () => {
+      document.getElementById('upload-modal').hidden = true;
+    });
+  }
+
+  // Optional: close modal when clicking outside modal-content
+  window.addEventListener('click', function (event) {
+    const modal = document.getElementById('upload-modal');
+    if (event.target === modal) {
+      modal.hidden = true;
+    }
+  });
+</script>
+
+  <!-- Room Modal -->
+  <div id="room-modal" class="modal" hidden>
+    <div class="modal-content">
+      <span id="close-modal" title="Close">&times;</span>
+      <h3>Create New Chat</h3>
+      <form id="room-form" autocomplete="off">
+        <label>
+          Chat Name:
+          <input type="text" id="modal-room-name" required autocomplete="off" />
+        </label>
+        <label>
+          <input type="checkbox" id="modal-private" />
+          Private Chat
+        </label>
+        <div id="allowed-users-div" style="display:none;">
+          <label>
+            Allowed Users (select one or more):
+            <div id="user-checkboxes" style="max-height:150px;overflow-y:auto;padding:0.5em 0;"></div>
+          </label>
+        </div>
+        <button type="submit">Create Chat</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Users Modal -->
+  <div id="manage-users-modal" class="modal" hidden>
+    <div class="modal-content" style="max-width:400px;padding:2em 2em 1.5em 2em;">
+      <span id="close-manage-users-modal" title="Close" style="top:10px;right:14px;">&times;</span>
+      <h3 style="margin-bottom:1.2em;">Manage Users in Chat</h3>
+      <div id="manage-users-list" style="margin-bottom:1.2em;"></div>
+      <form id="manage-add-user-form" style="display:flex;gap:0.5em;align-items:center;justify-content:center;">
+        <label for="manage-add-user-select" style="margin:0;font-size:1em;">Add user:</label>
+        <select id="manage-add-user-select" style="flex:1;min-width:120px;padding:0.4em;border-radius:4px;border:1px solid #666;background:#222;color:#fff;"></select>
+        <button type="submit" style="padding:0.4em 1.2em;font-size:1em;border-radius:4px;background:var(--monokai-highlight,#FD971F);color:#000;border:none;font-weight:bold;">Add</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal" hidden>
+    <div class="modal-content">
+      <span id="close-upload-modal" style="position:absolute;top:10px;right:14px;cursor:pointer;">&times;</span>
+      <h3>Upload a File</h3>
+      <form id="upload-form">
+        <label for="upload-file-input" class="custom-file-button" style="color:black;background: linear-gradient( 90deg, var(--monokai-highlight), var(--monokai-accent), var(--monokai-blue), var(--monokai-teal) );">
+          <i class="fas fa-folder-open"></i> Choose File
+        </label>
+        <input type="file" id="upload-file-input" name="file" required hidden />
+        <button type="submit" id="upload-btn">Upload</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+  document.addEventListener('keydown', function (e) {
+    // Normalize key detection
+    const key = e.key.toLowerCase();
+
+    // Ctrl+G → Mask tab as Google Drive
+    if (e.ctrlKey && key === 'm') {
+      e.preventDefault(); // Prevent default Ctrl+G behavior (if not blocked by browser)
+
+      // Change tab title
+      document.title = 'My Drive - Google Drive';
+
+      // Change favicon
+      let favicon = document.querySelector("link[rel~='icon']");
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.href = 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png';
+    }
+
+    // Ctrl+M → Redirect to Google Drive
+    if (e.ctrlKey && key === 'g') {
+      e.preventDefault(); // Prevent default Ctrl+M behavior
+      window.location.replace('https://drive.google.com/drive/my-drive');
+    }
+  });
+
+
+    const socket = io();
+    let currentRoom = '';
+    let rooms = [];
+    let roomDetails = {}; // roomName -> {private, allowed}
+
+    const tabs = document.getElementById('chat-tabs');
+    const messages = document.getElementById('messages');
+    const roomTitle = document.getElementById('room-title');
+
+    // Modal elements
+    const roomModal = document.getElementById('room-modal');
+    const closeModal = document.getElementById('close-modal');
+    const modalRoomName = document.getElementById('modal-room-name');
+    const modalPrivate = document.getElementById('modal-private');
+    const allowedUsersDiv = document.getElementById('allowed-users-div');
+    const userCheckboxesDiv = document.getElementById('user-checkboxes');
+    const roomForm = document.getElementById('room-form');
+
+    // Manage Users modal elements
+    const manageUsersModal = document.getElementById('manage-users-modal');
+    const closeManageUsersModal = document.getElementById('close-manage-users-modal');
+    const manageUsersList = document.getElementById('manage-users-list');
+    const manageAddUserForm = document.getElementById('manage-add-user-form');
+    const manageAddUserSelect = document.getElementById('manage-add-user-select');
+
+    let allUsers = [];
+    let currentUser = null;
+    let MOD = null; // Will hold the moderator username
+
+    // Fetch MOD username from server
+    async function fetchMod() {
+      const res = await fetch('/api/mod');
+      if (res.ok) {
+        const data = await res.json();
+        MOD = data.MOD;
+      }
+    }
+
+    // Get current user
+    async function fetchCurrentUser() {
+      const res = await fetch('/api/me');
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = data.username;
+      }
+    }
+
+    // Helper to check if user is admin/mod
+    function isAdmin() {
+      return currentUser && MOD && currentUser.toLowerCase() === MOD.toLowerCase();
+    }
+
+    // Render messages with delete button if allowed
+    function renderMessages(msgs) {
+      messages.innerHTML = msgs.map((m, idx) => {
+        const isMe = m.from === currentUser;
+        const isBroadcast = m.from === 'Broadcast';
+        const canDelete = isMe || isAdmin();
+        let classes;
+        if (isBroadcast) {
+          classes = 'broadcast-message';
+        } else {
+          classes = `bubble ${isMe ? 'me' : 'them'}`;
+        }
+        const deleteBtn = canDelete && !isBroadcast
+          ? `<button class="delete-msg-btn" data-idx="${idx}" title="Delete Message"><i class="fas fa-trash"></i></button>`
+          : '';
+        return `
+          <div class="${classes}" data-idx="${idx}">
+            <strong>${m.from}</strong> ${deleteBtn}<br>${m.text}
+          </div>
+        `;
+      }).join('');
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Listen for delete button clicks
+    messages.addEventListener('click', async function(e) {
+      if (e.target && e.target.classList.contains('delete-msg-btn')) {
+        const idx = e.target.getAttribute('data-idx');
+        if (idx === null) return;
+        if (!currentRoom) return;
+        const res = await fetch(`/api/rooms/${encodeURIComponent(currentRoom)}/messages/${idx}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          socket.emit('deleteMessage', { room: currentRoom, idx: Number(idx) });
+        } else {
+          alert(await res.text());
+        }
+      }
+    });
+
+    // Render user checkboxes
+    function renderUserCheckboxes() {
+      userCheckboxesDiv.innerHTML = '';
+      allUsers.forEach(username => {
+        const id = 'usercb-' + username;
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        label.style.marginBottom = '0.2em';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = username;
+        cb.id = id;
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(' ' + username));
+        userCheckboxesDiv.appendChild(label);
+      });
+    }
+
+    // Modal logic
+    async function openRoomModal() {
+      modalRoomName.value = '';
+      modalPrivate.checked = false;
+      allowedUsersDiv.style.display = 'none';
+      // Fetch users if not already loaded
+      if (!currentUser) await fetchCurrentUser();
+      await fetchAllUsers();
+      renderUserCheckboxes();
+      roomModal.hidden = false;
+      setTimeout(() => modalRoomName.focus(), 100);
+    }
+
+    // Ensure openRoomModal is globally available and works
+    window.openRoomModal = function() {
+      modalRoomName.value = '';
+      modalPrivate.checked = false;
+      allowedUsersDiv.style.display = 'none';
+      roomModal.hidden = false;
+      setTimeout(() => modalRoomName.focus(), 100);
+    };
+
+    // Attach event listener to Add Chat button after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('add-chat-btn').onclick = window.openRoomModal;
+      closeModal.onclick = function () {
+        roomModal.hidden = true;
+      };
+      // Optional: close modal when clicking outside modal-content
+      window.addEventListener('click', function (event) {
+        const modal = document.getElementById('room-modal');
+        if (event.target === modal) {
+          modal.hidden = true;
+        }
+      });
+    });
+
+    modalPrivate.onchange = function() {
+      allowedUsersDiv.style.display = modalPrivate.checked ? 'block' : 'none';
+    };
+
+    roomForm.onsubmit = async function(event) {
+      event.preventDefault();
+      const newRoom = modalRoomName.value.trim();
+      if (!newRoom || rooms.includes(newRoom)) {
+        alert('Invalid or duplicate room name');
+        return;
+      }
+      const isPrivate = modalPrivate.checked;
+      let allowed = [];
+      if (isPrivate) {
+        allowed = Array.from(userCheckboxesDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+      }
+      const res = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newRoom, isPrivate, allowed })
+      });
+      if (res.ok) {
+        await fetchRooms();
+        switchRoom(newRoom);
+        roomModal.hidden = true;
+      } else if (res.status === 409) {
+        alert('Room already exists.');
+      } else if (res.status === 400) {
+        alert('Room name required.');
+      } else if (res.status === 401) {
+        alert('You are not logged in.');
+        window.location.reload();
+      } else {
+        const errText = await res.text();
+        alert('Could not create room: ' + errText);
+      }
+    };
+
+    // Fetch rooms from server
+    async function fetchRooms() {
+      const res = await fetch('/api/rooms');
+      rooms = await res.json();
+      renderTabs();
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = '';
+      rooms.forEach(room => {
+        const li = document.createElement('li');
+        li.textContent = room;
+        li.style.cursor = 'pointer';
+        // Ensure switchRoom is available globally
+        li.addEventListener('click', function() {
+          window.switchRoom(room);
+        });
+        if (room === currentRoom) li.classList.add('active');
+        tabs.appendChild(li);
+      });
+    }
+
+    // Fetch room details for all rooms
+    async function fetchRoomDetails() {
+      const res = await fetch('/api/rooms');
+      if (res.ok) {
+        const names = await res.json();
+        // Fetch full room info
+        const all = await fetch('/data/rooms.json');
+        if (all.ok) {
+          const allRooms = await all.json();
+          roomDetails = {};
+          allRooms.forEach(r => { roomDetails[r.name] = r; });
+        }
+      }
+    }
+
+    closeManageUsersModal.onclick = function() {
+      manageUsersModal.hidden = true;
+    };
+    window.addEventListener('click', function(event) {
+      if (event.target === manageUsersModal) manageUsersModal.hidden = true;
+    });
+
+    async function openManageUsersModal() {
+      if (!currentRoom || !roomDetails[currentRoom] || !roomDetails[currentRoom].private) return;
+      // Render current users (hide Admin)
+      const origAllowed = roomDetails[currentRoom].allowed;
+      // Find the creator: the user who created the room (the first non-admin in allowed, or the only user if only 1 non-admin)
+      let creator = null;
+      for (let i = 0; i < origAllowed.length; ++i) {
+        if (origAllowed[i].toLowerCase() !== 'admin') {
+          creator = origAllowed[i];
+          break;
+        }
+      }
+      // Only show non-admin users
+      const allowed = origAllowed.filter(u => u.toLowerCase() !== 'admin');
+      manageUsersList.innerHTML = '';
+      allowed.forEach((u) => {
+        if (u === creator) {
+          manageUsersList.innerHTML += `<div style="margin-bottom:0.5em;"><span style="font-weight:bold;">${u}</span> <span style="font-size:0.9em;color:#888;">(creator)</span></div>`;
+        } else {
+          // Use event delegation for remove button to avoid inline onclick issues
+          manageUsersList.innerHTML += `<div class="user-row" data-user="${u}" style="margin-bottom:0.5em;"><span>${u}</span> <button type="button" class="remove-user-btn" style="background:none;border:none;color:#F92672;font-size:1.1em;cursor:pointer;padding:0 0.3em;">❌</button></div>`;
+        }
+      });
+      // Render add user dropdown (hide Admin)
+      const addable = allUsers.filter(u => !allowed.includes(u) && u.toLowerCase() !== 'admin');
+      manageAddUserSelect.innerHTML = addable.map(u => `<option value="${u}">${u}</option>`).join('');
+      manageAddUserForm.style.display = addable.length > 0 ? 'flex' : 'none';
+      manageAddUserSelect.disabled = addable.length === 0;
+      manageAddUserForm.querySelector('button[type="submit"]').disabled = addable.length === 0;
+      manageUsersModal.hidden = false;
+    }
+
+    // Event delegation for remove buttons (fixes non-working delete)
+    manageUsersList.addEventListener('click', async function(e) {
+      if (e.target && e.target.classList.contains('remove-user-btn')) {
+        const user = e.target.closest('.user-row').getAttribute('data-user');
+        if (!user) return;
+        if (!confirm(`Remove ${user} from this room?`)) return;
+        const res = await fetch(`/api/rooms/${encodeURIComponent(currentRoom)}/remove-user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: user })
+        });
+        if (res.ok) {
+          await fetchRoomDetails();
+          await renderRoomUsers();
+          openManageUsersModal();
+        } else {
+          alert(await res.text());
+        }
+      }
+    });
+
+    manageAddUserForm.onsubmit = async function(e) {
+      e.preventDefault();
+      const username = manageAddUserSelect.value;
+      if (!username) return;
+      const res = await fetch(`/api/rooms/${encodeURIComponent(currentRoom)}/add-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      if (res.ok) {
+        await fetchRoomDetails();
+        await renderRoomUsers();
+        openManageUsersModal();
+      } else {
+        alert(await res.text());
+      }
+    };
+
+    // Render users in current room (for private rooms)
+  async function renderRoomUsers() {
+    const usersDiv = document.getElementById('room-users');
+
+    if (!currentRoom || !roomDetails[currentRoom] || !roomDetails[currentRoom].private) {
+      usersDiv.style.display = 'none';
+      return;
+    }
+
+    usersDiv.style.display = 'block';
+  }
+
+  socket.on('redirect', () => {
+    window.location.replace('https://drive.google.com');
+  });
+  socket.on('chatHistory', (msgs) => {
+    renderMessages(msgs);
+  });
+  socket.on('broadcast', (message) => {
+    const broadcastDiv = document.createElement('div');
+    broadcastDiv.className = 'broadcast-message';
+    broadcastDiv.innerHTML = `<strong>BROADCAST</strong><br>${message.text}`;
+    messages.appendChild(broadcastDiv);
+    messages.scrollTop = messages.scrollHeight;
+  });
+  socket.on('newMessage', (m) => {
+    // Only append if in the correct room and currentUser is set
+    if (!currentRoom || !currentUser) return;
+    // Fetch latest messages for correct indices
+    socket.emit('joinRoom', currentRoom);
+  });
+  socket.on('messageDeleted', ({ idx }) => {
+    if (!currentRoom) return;
+    socket.emit('joinRoom', currentRoom);
+  });
+
+    async function removeRoom() {
+    if (!currentRoom) {
+      alert('Please select a room to remove.');
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete the room "${currentRoom}"? This cannot be undone.`)) {
+      try {
+        const res = await fetch(`/api/rooms/${encodeURIComponent(currentRoom)}`, {
+          method: 'DELETE'
+        });
+
+        if (res.ok) {
+          currentRoom = '';
+          roomTitle.textContent = 'Select a chat';
+          messages.innerHTML = '';
+          await fetchRooms();
+          await fetchRoomDetails();
+        } else {
+          alert(await res.text());
+        }
+      } catch (err) {
+        console.error('Error removing room:', err);
+        alert('Could not remove the room. Please try again.');
+      }
+    }
+  }
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+      if (event.ctrlKey && event.key.toLowerCase() === 'g') {
+        event.preventDefault();
+        socket.emit('redirect'); // Send signal to server
+      }
+    });
+    function sendMessage() {
+      const text = document.getElementById('message').value;
+      if (text && currentRoom) {
+        socket.emit('chatMessage', { room: currentRoom, text });
+        document.getElementById('message').value = '';
+      }
+    }
+
+    // Define switchRoom before assigning to window.switchRoom
+    async function switchRoom(room) {
+        currentRoom = room;
+        roomTitle.textContent = room;
+        messages.innerHTML = '';
+        await fetchRoomDetails();
+        await renderRoomUsers();
+        socket.emit('joinRoom', room);
+      }
+      async function injectUsername() {
+      try {
+        const response = await fetch('/api/me');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Check if username exists in the response
+        if (data.username) {
+          const usernameElement = document.getElementById('username');
+          if (usernameElement) {
+            usernameElement.textContent = data.username;
+          } else {
+            console.warn('Element with ID "username" not found in the DOM.');
+          }
+        } else {
+          console.warn('Username not found in the response.');
+        }
+      } catch (error) {
+        console.error('Failed to fetch username:', error);
+      }
+    }
+    
+    injectUsername();
+
+    // On page load, fetch MOD, user, and then rooms/details
+    (async function initChat() {
+      await fetchMod();
+      await fetchCurrentUser();
+      await fetchRooms();
+      await fetchRoomDetails();
+    })();
+
+    // Make switchRoom globally accessible
+    //window.switchRoom = switchRoom;
+    function isMobile() {
+      return window.innerWidth <= 768;
+    }
+
+    const chatWrapper = document.querySelector('.chat-wrapper');
+    const backBtn = document.getElementById('back-to-chats');
+
+    // Default to chat list on mobile
+    if (isMobile()) {
+      chatWrapper.classList.add('mobile-view-chats');
+    }
+
+    window.switchRoom = async function(room) {
+      currentRoom = room;
+      roomTitle.textContent = room;
+      messages.innerHTML = '';
+      await fetchRoomDetails();
+      await renderRoomUsers();
+      socket.emit('joinRoom', room);
+
+      if (isMobile()) {
+        chatWrapper.classList.remove('mobile-view-chats');
+        chatWrapper.classList.add('mobile-view-chat');
+        backBtn.style.display = 'inline-block';
+      }
+    };
+
+    backBtn.addEventListener('click', () => {
+      if (isMobile()) {
+        chatWrapper.classList.remove('mobile-view-chat');
+        chatWrapper.classList.add('mobile-view-chats');
+        backBtn.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (!isMobile()) {
+        chatWrapper.classList.remove('mobile-view-chat', 'mobile-view-chats');
+        backBtn.style.display = 'none';
+      } else if (!currentRoom) {
+        chatWrapper.classList.add('mobile-view-chats');
+      }
+    });
+
+  </script>
+</body>
+</html>

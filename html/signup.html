@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="/chat.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: var(--monokai-bg, #272822);
+      color: var(--monokai-text, #F8F8F2);
+      font-family: 'Roboto', Arial, sans-serif;
+      display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;
+    }
+    .signup-container {
+      background: #1e1f1c;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 2.5em 2em 2em 2em;
+      min-width: 320px;
+      max-width: 90vw;
+      border: 1px solid var(--monokai-yellow, #E6DB74);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .signup-container h2 {
+      color: var(--monokai-yellow, #E6DB74);
+      margin-bottom: 1.5em;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+    }
+    .signup-container form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 1em;
+    }
+    .signup-container input[type="text"],
+    .signup-container input[type="password"] {
+      width: 100%;
+      padding: 0.7em;
+      border-radius: 4px;
+      border: 1px solid var(--monokai-accent, #66D9EF);
+      background: #272822;
+      color: var(--monokai-text, #F8F8F2);
+      font-size: 1em;
+      margin-bottom: 0.5em;
+      box-sizing: border-box;
+    }
+    .signup-container button[type="submit"] {
+      background: var(--monokai-highlight, #FD971F);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      padding: 0.7em 1.5em;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 0.5em;
+      transition: background 0.2s;
+    }
+    .signup-container button[type="submit"]:hover {
+      background: var(--monokai-green, #A6E22E);
+      color: #000;
+    }
+    .signup-container p {
+      color: var(--monokai-pink, #F92672);
+      margin-bottom: 1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+      <input type="text" name="username" placeholder="Username" required autocomplete="username">
+      <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
+      <button type="submit">Request Sign Up</button>
+    </form>
+    <p id="signup-msg"></p>
+  </div>
+  <script>
+    document.getElementById('signup-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const username = this.username.value.trim();
+      const password = this.password.value;
+      const msg = document.getElementById('signup-msg');
+      msg.textContent = '';
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      if (res.status === 202) {
+        msg.style.color = "#A6E22E";
+        msg.textContent = "Signup request sent! Wait for admin approval.";
+      } else {
+        msg.style.color = "#F92672";
+        msg.textContent = await res.text();
+      }
+    };
+  </script>
+</body>
+</html>

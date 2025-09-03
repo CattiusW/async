@@ -1,0 +1,32 @@
+{
+  "name": "m4ngo",
+  "version": "1.0.0",
+  "description": "a simple messaging app in nodejs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "node",
+    "javascript",
+    "mango",
+    "chat",
+    "messaging",
+    "m4ngo",
+    "express",
+    "socket"
+  ],
+  "author": "cassius wignarajah",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "marked": "^16.2.1",
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.1"
+  }
+}

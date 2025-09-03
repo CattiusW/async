@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --monokai-bg: #272822;
+      --monokai-text: #F8F8F2;
+      --monokai-accent: #66D9EF;
+
+      --monokai-highlight:#F92672 ;
+      --monokai-pink: #F92672;
+      --monokai-green: #A6E22E;
+      --monokai-yellow: #E6DB74;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: var(--monokai-bg);
+      color: var(--monokai-text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2em 1em;
+      min-height: 100vh;
+    }
+
+    .admin-container {
+      background: #1e1f1c;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      padding: 2em;
+      max-width: 400px;
+      width: 100%;
+      border: 1px solid var(--monokai-yellow);
+    }
+
+    h2, h3 {
+      text-align: center;
+      color: var(--monokai-yellow);
+      margin-bottom: 1em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2em;
+    }
+
+    th, td {
+      padding: 0.75em;
+      border-bottom: 1px solid #444;
+      text-align: left;
+    }
+
+    th {
+      color: var(--monokai-yellow);
+      font-weight: bold;
+    }
+
+    button {
+      background: var(--monokai-highlight);
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5em 1em;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: var(--monokai-green);
+    }
+
+    .danger {
+      background: var(--monokai-pink);
+      color: #fff;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 0.7em;
+      margin-bottom: 0.5em;
+      border-radius: 4px;
+      border: 1px solid var(--monokai-accent);
+      background: #1e1e1e;
+      color: var(--monokai-text);
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+
+    form {
+      width: 100%;
+    }
+
+    #broadcast-form button {
+      margin-top: 0.5em;
+      width: 100%;
+    }
+
+    #open-add-user-modal {
+      margin-top: 1em;
+      width: 100%;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal[hidden] {
+      display: none !important;
+    }
+
+    .modal-content {
+      background: var(--monokai-bg);
+      color: var(--monokai-text);
+      padding: 2em;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      border: 1px solid var(--monokai-yellow);
+      position: relative;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 1em;
+      text-align: center;
+      color: var(--monokai-yellow);
+    }
+
+    .modal-content button[type="submit"] {
+      width: 100%;
+      margin-top: 0.5em;
+    }
+
+    #close-modal {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 1.5em;
+      color: var(--monokai-pink);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #close-modal:hover {
+      color: var(--monokai-green);
+    }
+
+    @media (max-width: 600px) {
+      .admin-container {
+        padding: 1em;
+      }
+
+      table, th, td {
+        font-size: 0.95em;
+      }
+
+      .modal-content {
+        padding: 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <h2>Admin Panel</h2>
+
+    <h3>Pending Signups</h3>
+    <table id="pending-table">
+      <thead><tr><th>Username</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>All Users</h3>
+    <table id="users-table">
+      <thead><tr><th>Username</th><th>Actions</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="open-add-user-modal">➕ Add User</button>
+    <p id="admin-msg"></p>
+
+    <h3>Broadcast Message</h3>
+    <form id="broadcast-form">
+      <input type="text" id="broadcast-message" placeholder="Enter broadcast message" required>
+      <button type="submit">Send</button>
+      <p id="broadcast-msg"></p>
+    </form>
+  </div>
+
+  <!-- Modal -->
+  <div id="add-user-modal" class="modal" hidden>
+    <div class="modal-content">
+      <span id="close-modal" title="Close">&times;</span>
+      <h3>Add User</h3>
+      <form id="add-user-form">
+        <input type="text" name="username" placeholder="Username" required autocomplete="username">
+        <input type="password" name="password" placeholder="Password" required autocomplete="new-password">
+        <button type="submit">Add User</button>
+      </form>
+      <p id="add-user-msg"></p>
+      <script>
+  // Load pending signups
+  async function loadPending() {
+    const res = await fetch('/api/pending-signups');
+    const data = res.ok ? await res.json() : [];
+    const tbody = document.querySelector('#pending-table tbody');
+    tbody.innerHTML = '';
+
+    data.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.username}</td>
+        <td>
+          <button onclick="approve('${u.username}')">Approve</button>
+          <button class="danger" onclick="reject('${u.username}')">Reject</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Load all users
+  async function loadUsers() {
+    const res = await fetch('/api/users?all=1');
+    const data = res.ok ? await res.json() : [];
+    const tbody = document.querySelector('#users-table tbody');
+    tbody.innerHTML = '';
+
+    data.forEach(u => {
+      if (u.toLowerCase() === 'admin') return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u}</td>
+        <td>
+          <button class="danger" onclick="deleteUser('${u}')">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Approve signup
+  async function approve(username) {
+    const res = await fetch('/api/approve-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+    showMsg(await res.text(), res.ok);
+    loadPending();
+    loadUsers();
+  }
+
+  // Reject signup
+  async function reject(username) {
+    const res = await fetch('/api/reject-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+    showMsg(await res.text(), res.ok);
+    loadPending();
+  }
+
+  // Delete user
+  async function deleteUser(username) {
+    if (!confirm(`Delete user "${username}"?`)) return;
+    const res = await fetch('/api/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+    showMsg(await res.text(), res.ok);
+    loadUsers();
+  }
+
+  // Modal logic
+  const addUserModal = document.getElementById('add-user-modal');
+  const openAddUserBtn = document.getElementById('open-add-user-modal');
+  const closeModal = document.getElementById('close-modal');
+  const addUserForm = document.getElementById('add-user-form');
+  const addUserMsg = document.getElementById('add-user-msg');
+
+  openAddUserBtn.onclick = function () {
+    addUserForm.reset();
+    addUserMsg.textContent = '';
+    addUserModal.hidden = false;
+    setTimeout(() => addUserForm.username.focus(), 100);
+  };
+
+  closeModal.onclick = function () {
+    addUserModal.hidden = true;
+  };
+
+  window.onclick = function (event) {
+    if (event.target === addUserModal) {
+      addUserModal.hidden = true;
+    }
+  };
+
+  // Add user form logic
+  addUserForm.onsubmit = async function (e) {
+    e.preventDefault();
+    const username = this.username.value.trim();
+    const password = this.password.value;
+    addUserMsg.textContent = '';
+
+    const res = await fetch('/api/admin-add-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (res.ok) {
+      addUserMsg.style.color = "#A6E22E";
+      addUserMsg.textContent = "User added!";
+      this.reset();
+      loadUsers();
+    } else {
+      addUserMsg.style.color = "#F92672";
+      addUserMsg.textContent = await res.text();
+    }
+  };
+
+  // Show temporary message
+  function showMsg(msg, ok) {
+    const el = document.getElementById('admin-msg');
+    el.textContent = msg;
+    el.style.color = ok ? "#A6E22E" : "#F92672";
+    setTimeout(() => el.textContent = '', 3000);
+  }
+
+  // Broadcast message logic
+  const broadcastForm = document.getElementById('broadcast-form');
+  const broadcastInput = document.getElementById('broadcast-message');
+  const broadcastMsg = document.getElementById('broadcast-msg');
+
+  broadcastForm.onsubmit = async function (e) {
+    e.preventDefault();
+    const text = broadcastInput.value.trim();
+    broadcastMsg.textContent = '';
+    if (!text) return;
+
+    const res = await fetch('/api/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+
+    if (res.ok) {
+      broadcastMsg.style.color = "#A6E22E";
+      broadcastMsg.textContent = "Broadcast sent!";
+      broadcastInput.value = '';
+    } else {
+      broadcastMsg.style.color = "#F92672";
+      broadcastMsg.textContent = await res.text();
+    }
+
+    setTimeout(() => broadcastMsg.textContent = '', 3000);
+  };
+
+  // Initial load
+  loadPending();
+  loadUsers();
+</script>
+
+    </div>
+  </div>
+</body>
+</html>

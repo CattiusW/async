@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+
+  <!-- Favicon (logo in browser tab) -->
+  <link rel="icon" type="image/png" href="/img/logo.png">
+
+  <style>
+    :root {
+      --monokai-bg: #272822;
+      --monokai-text: #F8F8F2;
+      --monokai-accent: #0096C7;     /* deep aqua blue */
+      --monokai-highlight: #00FF73;  /* neon green */
+      --monokai-green: #A6E22E;
+      --monokai-blue: #0077FF;       /* ocean blue */
+      --monokai-teal: #20E3D9;       /* sea-green */
+    }
+
+    body {
+      background: var(--monokai-bg);
+      color: var(--monokai-text);
+      font-family: 'Roboto', Arial, sans-serif;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      background: #1e1f1c;
+      border-radius: 12px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        0 0 16px rgba(0, 150, 199, 0.4),
+        0 0 24px rgba(0, 255, 115, 0.3);
+      padding: 2.5em 2em 2em 2em;
+      min-width: 320px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-img {
+      width: 150px;
+      height: auto;
+      margin-bottom: 0.6em;
+    }
+
+    .logo-text {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 1.5em;
+      background: linear-gradient(
+        90deg,
+        var(--monokai-highlight),
+        var(--monokai-accent),
+        var(--monokai-blue),
+        var(--monokai-teal)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+    }
+
+    .chat-container form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 1em;
+    }
+
+    .chat-container input[type="text"],
+    .chat-container input[type="password"] {
+      width: 100%;
+      padding: 0.7em;
+      border-radius: 6px;
+      border: none;
+      background: #272822;
+      color: var(--monokai-text);
+      font-size: 1em;
+      margin-bottom: 0.5em;
+      box-sizing: border-box;
+      transition: box-shadow 0.2s, border 0.2s;
+    }
+
+    .chat-container input:focus {
+      outline: none;
+      box-shadow: 0 0 8px var(--monokai-accent);
+      border: 1px solid var(--monokai-accent);
+    }
+
+    .chat-container button[type="submit"] {
+      background: linear-gradient(90deg,
+        var(--monokai-highlight),
+        var(--monokai-accent),
+        var(--monokai-blue)
+      );
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8em 1.5em;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 0.5em;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .chat-container button[type="submit"]:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .chat-container p {
+      color: var(--monokai-accent);
+      margin-top: 1em;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .chat-container a {
+      color: var(--monokai-highlight);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .chat-container a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .chat-container {
+        min-width: 90vw;
+        padding: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <img src="/img/logo.png" alt="Async Logo" class="logo-img">
+    <div class="logo-text">async</div>
+
+    <form method="POST" action="/chat-login">
+      <input type="text" name="username" placeholder="Username" required autocomplete="username">
+      <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
+      <button type="submit">Login</button>
+      <p>Don't have an account? <a href="/signup">Signup</a></p>
+    </form>
+  </div>
+</body>
+</html>

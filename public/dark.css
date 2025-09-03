@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
+@media (max-width: 600px) {
+  #content {
+    margin: 4vh auto 0 auto;
+    
+  }
+}
+
+:root {
+    
+    --monokai-bg: #272822;
+    --monokai-text: #F8F8F2;
+    --monokai-accent: #66D9EF;
+    --monokai-highlight: #FD971F;
+    --monokai-pink: #F92672;
+    --monokai-green: #A6E22E;
+    --monokai-yellow: #E6DB74;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    cursor: url('/img/pointer.png'), auto;
+}
+
+body {
+    background-color: var(--monokai-bg);
+    color: var(--monokai-text);
+    padding-top: 10vh;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: var(--monokai-yellow);
+    transition: color 0.2s ease-in-out;
+}
+a:hover {
+    color: var(--monokai-green);
+}
+
+#arcadia {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10vh;
+    background-color: var(--monokai-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 2vw;
+    z-index: 1000;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* matching blur */
+}
+
+#arcadia img {
+    height: 2em;
+    width: 2em;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.5em;
+    vertical-align: middle;
+}
+
+#arcadia .arcadia-links {
+    margin-left: auto;
+    display: flex;
+    gap: 1.5em;
+    align-items: center;
+}
+
+#content {
+    margin: 12vh auto 0 auto;
+    max-width: 900px;
+    padding: 2vh 2vw;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--monokai-yellow);
+    margin-bottom: 0.5em;
+}
+h2 {
+    color:var(--monokai-yellow)
+}
+
+p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: var(--monokai-text);
+}
+::selection {
+  background-color: var(--monokai-pink);
+  color: #000000; /* black text */
+}
+
+::-moz-selection {
+  background-color: var(--monokai-pink);
+  color: #000000;
+}
+
