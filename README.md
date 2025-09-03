@@ -15,7 +15,7 @@
 
 ---
 
-## Moderator Commands
+## Commands
 
 | Command           | Description                                      | Access Level     |
 |------------------|--------------------------------------------------|-----------------|
@@ -23,7 +23,7 @@
 | `/mute [user]`   | Prevents a user from sending messages            | Moderator only  |
 | `/unmute [user]` | Restores messaging ability to a muted user       | Moderator only  |
 | `/online`        | Displays a list of currently online users        | All users       |
-
+| `@ai [query]     | Querys the openrouter ai                         | All users       |     
 ---
 
 ## Installation
